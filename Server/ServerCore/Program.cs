@@ -4,52 +4,60 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
+    // 메모리 베리어
+    // a) 코드 재배치 억제
+    // b) 가시성
+
+    // 1) Full Memory Barrier (ASM MFENCE, C# Thread.MemoryBairrer) : Store Load 둘다 막는다
+    // 2) Store Memory Barrier (ASM SFENCE) : Store만 막는다
+    // 3) Load Memory Barrier (ASM LFENCE) : Load만 막는다.
+
     class Program
     {
-        volatile static bool _stop = false;
+        static int x = 0;
+        static int y = 0;
+        static int r1 = 0;
+        static int r2 = 0;
 
-        static void ThreadMain()
+        static void Thread_1()
         {
-            Console.WriteLine("쓰레드 시작!");
+            y = 1; // Store y
 
-            // C++ 에서 volatile 키워드는 C#과 조금 다르다
-            // C++ 에서도 코드 최적화 내용도 있다.
-            // C#에서는 volatile 키워드보다 다른 방식을 사용하는걸 권한다.
-            // C#에서는 캐시를 무시하고 최신값을 가져와라 라는 뜻도 있다.
+            Thread.MemoryBarrier();
 
-            // 릴리즈 모드로 들어가면 아래와 같이 자동 변환을 해준다. 
-            // 이로 인해 멀티쓰레드 환경에서 오류가 생긴 이유이다.
-            // 이를 해결하기 위한 volatile 이라는 키워드를 사용한다.
-            //if(_stop == false)
-            //{
-            //    while(true)
-            //    {
+            r1 = x; // Load x
+        }
 
-            //    }
-            //}
+        static void Thread_2()
+        {
+            x = 1; // Store x
 
-            while (_stop == false)
-            {
-                // 누군가가 stop 신호를 해주기를 기다린다.
-            }
+            Thread.MemoryBarrier();
 
-            Console.WriteLine("쓰레드 종료!");
+            r2 = y; // Load y
         }
 
         static void Main(string[] args)
         {
-            Task t = new Task(ThreadMain);
-            t.Start();
+            int count = 0;
+            while(true)
+            {
+                count++;
+                x = y = r1 = r2 = 0;
 
-            // 1초동안 슬립 1000ms
-            Thread.Sleep(1000);
+                Task t1 = new Task(Thread_1);
+                Task t2 = new Task(Thread_2);
 
-            _stop = true;
+                t1.Start();
+                t2.Start();
 
-            Console.WriteLine("Stop 호출");
-            Console.WriteLine("종료 대기중");
-            t.Wait();
-            Console.WriteLine("종료 성공");
+                Task.WaitAll(t1, t2);
+
+                if (r1 == 0 && r2 == 0)
+                    break;
+            }
+
+            Console.WriteLine($"{count}번만에 빠져나옴!");
         }
     }
 }
