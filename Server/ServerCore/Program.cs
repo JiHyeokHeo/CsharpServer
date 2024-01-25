@@ -10,26 +10,33 @@ namespace ServerCore
     class Program
     {
         static int number = 0;
+        static object _obj = new object();
 
         static void Thread_1()
         {
-            // atomic = 원자성
-
-            // 집행검 User2 인벤에 넣어라 - ok
-            // 집행검 User1 인벤에서 없애라 - fail 
-
             for (int i = 0; i < 100000; i++)
             {
-                // 성능에서 손해를 많이본다.
-                Interlocked.Increment(ref number);
+                // 상호배제 (Mutual Exclusive)
+                // CriticalSection, std::mutex
+                // 실제로 내부는 Moniter.Enter로 구현되어있다
+                lock(_obj)
+                {
+                    number++;
+                }
+
             }
         }
+
+        // 데드락 DeadLock
 
         static void Thread_2() 
         {
             for (int i = 0; i < 100000; i++)
             {
-                Interlocked.Decrement(ref number); 
+                lock (_obj)
+                {
+                    number--;
+                }
             }
         }
 
