@@ -1,63 +1,49 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServerCore
 {
-    // 메모리 베리어
-    // a) 코드 재배치 억제
-    // b) 가시성
-
-    // 1) Full Memory Barrier (ASM MFENCE, C# Thread.MemoryBairrer) : Store Load 둘다 막는다
-    // 2) Store Memory Barrier (ASM SFENCE) : Store만 막는다
-    // 3) Load Memory Barrier (ASM LFENCE) : Load만 막는다.
+    // 경합 조건
 
     class Program
     {
-        static int x = 0;
-        static int y = 0;
-        static int r1 = 0;
-        static int r2 = 0;
+        static int number = 0;
 
         static void Thread_1()
         {
-            y = 1; // Store y
+            // atomic = 원자성
 
-            Thread.MemoryBarrier();
+            // 집행검 User2 인벤에 넣어라 - ok
+            // 집행검 User1 인벤에서 없애라 - fail 
 
-            r1 = x; // Load x
+            for (int i = 0; i < 100000; i++)
+            {
+                // 성능에서 손해를 많이본다.
+                Interlocked.Increment(ref number);
+            }
         }
 
-        static void Thread_2()
+        static void Thread_2() 
         {
-            x = 1; // Store x
-
-            Thread.MemoryBarrier();
-
-            r2 = y; // Load y
+            for (int i = 0; i < 100000; i++)
+            {
+                Interlocked.Decrement(ref number); 
+            }
         }
 
         static void Main(string[] args)
         {
-            int count = 0;
-            while(true)
-            {
-                count++;
-                x = y = r1 = r2 = 0;
+            Task t1 = new Task(Thread_1);
+            Task t2 = new Task(Thread_2);
+            t1.Start();
+            t2.Start();
 
-                Task t1 = new Task(Thread_1);
-                Task t2 = new Task(Thread_2);
+            Task.WaitAll(t1, t2);
 
-                t1.Start();
-                t2.Start();
+            Console.WriteLine(number);
 
-                Task.WaitAll(t1, t2);
-
-                if (r1 == 0 && r2 == 0)
-                    break;
-            }
-
-            Console.WriteLine($"{count}번만에 빠져나옴!");
         }
     }
 }
