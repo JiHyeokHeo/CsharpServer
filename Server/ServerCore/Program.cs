@@ -6,6 +6,47 @@ using System.Threading.Tasks;
 namespace ServerCore
 {
     // 경합 조건
+    class SessionManager
+    {
+        static object _lock = new object();
+
+        public static void TestSession()
+        {
+            lock (_lock)
+            {
+
+            }
+        }
+
+        public static void Test()
+        {
+            lock (_lock)
+            {
+                UserManager.TestUser();
+            }
+        }
+    }
+
+    class UserManager
+    {
+        static object _lock= new object();
+
+        public static void Test()
+        {
+            lock (_lock)
+            {
+                SessionManager.TestSession();
+            }
+        }
+
+        public static void TestUser()
+        {
+            lock (_lock)
+            {
+
+            }
+        }
+    }
 
     class Program
     {
@@ -14,16 +55,9 @@ namespace ServerCore
 
         static void Thread_1()
         {
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 100; i++)
             {
-                // 상호배제 (Mutual Exclusive)
-                // CriticalSection, std::mutex
-                // 실제로 내부는 Moniter.Enter로 구현되어있다
-                lock(_obj)
-                {
-                    number++;
-                }
-
+                SessionManager.Test();
             }
         }
 
@@ -31,12 +65,9 @@ namespace ServerCore
 
         static void Thread_2() 
         {
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 100; i++)
             {
-                lock (_obj)
-                {
-                    number--;
-                }
+                UserManager.Test();
             }
         }
 
@@ -45,6 +76,9 @@ namespace ServerCore
             Task t1 = new Task(Thread_1);
             Task t2 = new Task(Thread_2);
             t1.Start();
+
+            Thread.Sleep(100);
+
             t2.Start();
 
             Task.WaitAll(t1, t2);
