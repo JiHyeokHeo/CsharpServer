@@ -8,17 +8,16 @@ namespace ServerCore
     class Lock
     {
         // bool <- 커널
-        AutoResetEvent _available = new AutoResetEvent(true);
+        ManualResetEvent _available = new ManualResetEvent(false);
 
         public void Acquire()
         {
             _available.WaitOne(); // 입장 시도
-            //_available.Reset(); // bool = false; 위에 이 부분이 생략되어있음
         }
 
         public void Release()
         {
-            _available.Set(); // flag = true
+            _available.Set(); // 문을 열어준다
         }
     }
 
