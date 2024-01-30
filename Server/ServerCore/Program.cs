@@ -15,13 +15,37 @@ namespace ServerCore
         // Monitor 
         static object _lock = new object();
         static SpinLock _lock2 = new SpinLock();
+        // RWLock ReaderWriteLock
+        static ReaderWriterLockSlim _lock3 = new ReaderWriterLockSlim();
+
+
         // 직접 만든다.
 
-        // 게임 개발하는데에 있어 필요없음
-        static Mutex _lock3 = new Mutex();  // 커널모드를 사용하기에 많이 무겁다 // 별도의 프로그램끼리도 동기화 작업을 할때 사용
-        
-        // 컨텐츠 구현 시
-        // 심리스 RPG를 만들때는 멀티스레드가 필요로 하다 
+        // 운영 보상이 주에 1번만 할텐데 lock을 하면 아쉽다.
+        // [] [] [] [] []
+        class Reward
+        {
+
+        }
+
+
+        // 99.999 
+        static Reward GetRewardById(int id)
+        {
+            _lock3.EnterReadLock();
+
+            _lock3.ExitReadLock();
+            return null;
+        }
+
+        // 0.001%
+        static void AddReward(Reward reward)
+        {
+            _lock3.EnterWriteLock();
+
+            _lock3.ExitWriteLock();
+        }
+
         static void Main(string[] args)
         {
             lock(_lock)
@@ -29,17 +53,6 @@ namespace ServerCore
 
             }
             
-            // 스핀락 사용
-            //bool lockTaken = false;
-            //try
-            //{
-            //    _lock2.Enter(ref lockTaken);
-            //}
-            //finally
-            //{
-            //    if(lockTaken)
-            //        _lock2.Exit();
-            //}
 
         }
     }
