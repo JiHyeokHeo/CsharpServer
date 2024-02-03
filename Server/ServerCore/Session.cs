@@ -24,7 +24,12 @@ namespace ServerCore
 
         public void Send(byte[] sendBuff)
         {
-            _socket.Send(sendBuff);
+            //_socket.Send(sendBuff);
+            SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
+            sendArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnSendCompleted);
+            sendArgs.SetBuffer(sendBuff, 0, sendBuff.Length);
+
+            RegisterSend(sendArgs);
         }
 
         public void Disconnect()
@@ -36,6 +41,33 @@ namespace ServerCore
         }
 
         #region 네트워크 통신
+
+        void RegisterSend(SocketAsyncEventArgs args)
+        {
+            bool pending = _socket.SendAsync(args);
+            if (pending == false)
+                OnSendCompleted(null, args);
+        }
+
+        void OnSendCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
+            {
+                try
+                {
+                    
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"OnSendCompleted Failed {e}");
+                }
+            }
+            else
+            {
+                Disconnect();
+            }
+        }
+
         void RegisterReceive(SocketAsyncEventArgs args)
         {
             // 비동기 Non Blocking Version
@@ -48,7 +80,6 @@ namespace ServerCore
         {
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {
-                // TODO
                 try
                 {
                     string recvData = Encoding.UTF8.GetString(args.Buffer, args.Offset, args.BytesTransferred);
@@ -62,7 +93,7 @@ namespace ServerCore
             }
             else
             {
-                // TODO : Disconnect
+                Disconnect();
             }
 
         }
