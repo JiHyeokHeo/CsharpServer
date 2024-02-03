@@ -26,6 +26,7 @@ namespace ServerCore
             _listenSocket.Listen(10);
 
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            // 멀티스레드 시작
             args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
             RegisterAccept(args);
         }
@@ -39,6 +40,7 @@ namespace ServerCore
                 OnAcceptCompleted(null, args);
         }
 
+        // 이 함수에서 레이스컨디션이 발생함
         void OnAcceptCompleted(object sender, SocketAsyncEventArgs args)
         {
             if (args.SocketError == SocketError.Success)
