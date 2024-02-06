@@ -26,12 +26,15 @@ namespace DummyClient
             Console.WriteLine($"OnDisconnected : {endPoint}");
         }
 
-        public override void OnReceive(ArraySegment<byte> buffer)
+        public override int OnReceive(ArraySegment<byte> buffer)
         {
             string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
             Console.WriteLine($"[From Server] {recvData}");
+            return buffer.Count;
         }
 
+        // 이동 패킷 ((3,2)~~ 좌표로 이동하고 싶다!)
+        // 15 3 2
         public override void OnSend(int numofBytes)
         {
             Console.WriteLine($"Transfered bytes : {numofBytes}");
