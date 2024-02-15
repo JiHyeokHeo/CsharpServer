@@ -8,16 +8,7 @@ using System.Threading.Tasks;
 
 namespace DummyClient
 {
-    public abstract class Packet
-    {
-        public ushort size;
-        public ushort packetId;
-
-        public abstract ArraySegment<byte> Write();
-        public abstract void Read(ArraySegment<byte> s);
-    }
-
-    class PlayerInfoReq : Packet
+    class PlayerInfoReq 
     {
         public long playerId;
         public string name;
@@ -42,23 +33,18 @@ namespace DummyClient
 
             public void Read(ReadOnlySpan<byte> s, ref ushort count)
             {
-                this.id = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+                id = BitConverter.ToInt32(s.Slice(count, s.Length - count));
                 count += sizeof(int);
-                this.level = BitConverter.ToInt16(s.Slice(count, s.Length - count));
+                level = BitConverter.ToInt16(s.Slice(count, s.Length - count));
                 count += sizeof(short);
-                this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
+                duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
                 count += sizeof(float);
             }
         }
 
         public List<SkillInfo> skills = new List<SkillInfo>();
 
-        public PlayerInfoReq()
-        {
-            this.packetId = (ushort)PacketID.PlayerInfoReq;
-        }
-
-        public override ArraySegment<byte> Write()
+        public ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);
 
@@ -69,12 +55,12 @@ namespace DummyClient
 
             // [][][][][][][][][][]
             count += sizeof(ushort);
-            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.packetId);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort);
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long);
 
-            // string UTF-16으로
+            // string 
             ushort nameLen = (ushort)Encoding.Unicode.GetBytes(this.name, 0, this.name.Length, segment.Array, segment.Offset + count + sizeof(ushort));
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), nameLen);
             count += sizeof(ushort);
@@ -95,7 +81,7 @@ namespace DummyClient
             return  SendBufferHelper.Close(count);
         }
 
-        public override void Read(ArraySegment<byte> segment)
+        public void Read(ArraySegment<byte> segment)
         {
             ushort count = 0;
 
