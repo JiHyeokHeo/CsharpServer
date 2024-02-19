@@ -8,14 +8,33 @@ namespace PacketGenerator
 {
     class PacketFormat
     {
+        // {0} 패킷 이름/번호 목록
+        // {1} 패킷 목록
+        public static string fileFormat =
+@"using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using ServerCore;
+
+public enum PacketID
+{{
+    {0}
+}}
+
+{1}
+";
+        // {0} 패킷 이름
+        // {1} 패킷 번호
+        public static string packetEnumFormat =
+@"{0} = {1},";
 
         // {0} 패킷 이름
         // {1} 멤버 변수들
         // {2} 멤버 변수 Read
         // {3} 멤버 변수 Write
         public static string packetFormat =
-@"
- class {0} 
+@"class {0} 
 {{
     {1}
 
@@ -48,7 +67,6 @@ namespace PacketGenerator
             return null;
         return  SendBufferHelper.Close(count);
     }}
-
 }}
 ";
         // {0} 변수 형식
@@ -63,8 +81,7 @@ namespace PacketGenerator
         // {3} 멤버 변수 Read
         // {4} 멤버 변수 Write
         public static string memberListFormat =
-@"
-public struct {0}Info
+@"public class {0}
 {{
     {2}
 
@@ -82,7 +99,7 @@ public struct {0}Info
 
  
 }}
-public List<{0}Info> {1}s = new List<{0}Info>();
+public List<{0}> {1}s = new List<{0}>();
 ";
 
         // {0} 변수 이름
@@ -91,6 +108,12 @@ public List<{0}Info> {1}s = new List<{0}Info>();
         public static string readFormat =
 @"this.{0} = BitConverter.{1}(s.Slice(count, s.Length - count));
 count += sizeof({2});";
+
+        // {0} 변수이름
+        // {1} 변수 형식
+        public static string readByteFormat =
+@"this.{0} = ({1})segment.Array[segment.Offset + count];
+count += sizeof({1});";
 
         // {0} 변수이름
         public static string readStringFormat =
@@ -107,7 +130,7 @@ ushort {1}Len = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
 count += sizeof(ushort);
 for (int i = 0; i < {1}Len; i++)
 {{
-    {0}Info skill = new {0}Info();
+    {0} {1} = new {0}();
     {1}.Read(s, ref count);
     {1}s.Add({1});
 }}";
@@ -116,6 +139,12 @@ for (int i = 0; i < {1}Len; i++)
         // {1} 변수형식
         public static string writeFormant =
 @"success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.{0});
+count += sizeof({1});";
+
+        // {0} 변수이름
+        // {1} 변수 형식
+        public static string writeByteFormat =
+@"segment.Array[segment.Offset + count] = (byte)this.{0};
 count += sizeof({1});";
 
         // {0} 변수이름
@@ -130,7 +159,7 @@ count += {0}Len;";
         public static string writeListFormat =
 @"success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort){1}s.Count);
 count += sizeof(ushort);
-foreach ({0}Info {1} in this.{1}s)
+foreach ({0} {1} in this.{1}s)
 success &= {1}.Write(s, ref count);";
 
     }
