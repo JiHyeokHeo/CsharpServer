@@ -20,8 +20,8 @@ class PacketManager
 
     public void Register()
     {
-      _onReceive.Add((ushort)PacketID.C_PlayerInfoReq, MakePacket<C_PlayerInfoReq>);
-        _handler.Add((ushort)PacketID.C_PlayerInfoReq, PacketHandler.C_PlayerInfoReqHandler);
+        _onReceive.Add((ushort)PacketID.C_Chat, MakePacket<C_Chat>);
+        _handler.Add((ushort)PacketID.C_Chat, PacketHandler.C_ChatHandler);
 
     }
 
@@ -34,7 +34,7 @@ class PacketManager
         ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
         count += 2;
 
-        Action<PacketSession, ArraySegment<byte>>? action = null;
+        Action<PacketSession, ArraySegment<byte>> action = null;
         if (_onReceive.TryGetValue(id, out action))
             action.Invoke(session, buffer);
     }

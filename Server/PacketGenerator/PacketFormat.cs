@@ -63,7 +63,7 @@ class PacketManager
 }}";
         // {0} 패킷 이름
         public static string managerRegisterFormat =
-@"      _onReceive.Add((ushort)PacketID.{0}, MakePacket<{0}>);
+@"        _onReceive.Add((ushort)PacketID.{0}, MakePacket<{0}>);
         _handler.Add((ushort)PacketID.{0}, PacketHandler.{0}Handler);";
 
 
