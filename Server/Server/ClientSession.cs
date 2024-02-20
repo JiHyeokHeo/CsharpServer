@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-
-
     class ClientSession : PacketSession
     {
         public override void OnConnected(EndPoint endPoint)
@@ -35,30 +33,7 @@ namespace Server
 
         public override void OnReceivePacket(ArraySegment<byte> buffer)
         {
-            ushort count = 0;
-
-            ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
-            count += 2;
-            ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
-            count += 2;
-
-            switch ((PacketID)id)
-            {
-                case PacketID.PlayerInfoReq:
-                    {
-                        PlayerInfoReq p = new PlayerInfoReq();
-                        p.Read(buffer);
-                        Console.WriteLine($"PlayerInfoReq: {p.playerId} {p.name}");
-
-                        foreach  (PlayerInfoReq.Skill skill in p.skills)
-                        {
-                            Console.WriteLine($"Skill ({skill.id}) ({skill.level}) ({skill.duration})");
-                        }
-                    }
-                    break;
-            }
-
-            Console.WriteLine($"RecvPacektId : {id}, Size {size}");
+            PacketManager.Instance.OnReceivePacket(this, buffer);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
