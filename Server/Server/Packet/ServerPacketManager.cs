@@ -3,17 +3,14 @@ using ServerCore;
 class PacketManager
 {
     #region Singleton
-    static PacketManager _instance;
-    public static PacketManager Instance
-    {
-        get
-        {
-            if(_instance == null)
-                _instance = new PacketManager();
-            return _instance;
-        }
-    }
+    static PacketManager _instance = new PacketManager();
+    public static PacketManager Instance { get { return _instance; } }
     #endregion
+
+    PacketManager()
+    {
+        Register();
+    }
 
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onReceive = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>>();
     Dictionary<ushort, Action<PacketSession, IPacket>> _handler = new Dictionary<ushort, Action<PacketSession, IPacket>>();
@@ -34,7 +31,7 @@ class PacketManager
         ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
         count += 2;
 
-        Action<PacketSession, ArraySegment<byte>> action = null;
+        Action<PacketSession, ArraySegment<byte>>? action = null;
         if (_onReceive.TryGetValue(id, out action))
             action.Invoke(session, buffer);
     }

@@ -104,7 +104,7 @@ namespace ServerCore
 
         void RegisterSend()
         {
-            if (_disconnected == 1)
+            if (_socket == null || _disconnected == 1)
                 return;
 
             while (_sendQueue.Count > 0)
