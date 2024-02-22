@@ -31,7 +31,7 @@ class PacketManager
         ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
         count += 2;
 
-        Action<PacketSession, ArraySegment<byte>>? action = null;
+        Action<PacketSession, ArraySegment<byte>> action = null;
         if (_onReceive.TryGetValue(id, out action))
             action.Invoke(session, buffer);
     }

@@ -21,6 +21,7 @@ class PacketHandler
         room.Push(
             () => room.BroadCast(clientSession, chatPacket.chat)
         );
+        
     }
 
 
