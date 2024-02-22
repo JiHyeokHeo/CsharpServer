@@ -17,7 +17,7 @@ namespace ServerCore
             for(int i = 0; i < count; i++)
             {
                 Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                _sessionFactory += sessionFactory;
+                _sessionFactory = sessionFactory;
 
                 SocketAsyncEventArgs args = new SocketAsyncEventArgs();
                 args.Completed += OnConnectCompleted;
@@ -25,7 +25,6 @@ namespace ServerCore
                 args.UserToken = socket;
 
                 RegisterConnect(args);
-                Thread.Sleep(10);
             }
         }
 
